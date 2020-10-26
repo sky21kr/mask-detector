@@ -9,3 +9,10 @@ class ArticleAdmin(admin.ModelAdmin):
         'source',
         'date',
     )
+
+@admin.register(models.MaskHistory)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = (
+        'outing',
+        'wearing',
+    )

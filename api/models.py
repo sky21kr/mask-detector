@@ -5,3 +5,7 @@ class Article(models.Model):
     title = models.CharField(max_length=200)
     date = models.CharField(max_length=20)
     source = models.CharField(max_length=50)
+
+class MaskHistory(models.Model):
+    outing = models.IntegerField()
+    wearing = models.IntegerField()
