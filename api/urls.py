@@ -9,6 +9,7 @@ from . import views
 
 # 변수로 설정한 값을 include함.
 urlpatterns = [
-    path('article/get-list', views.getArticle, name='getArticle'),
+    path('article', views.getArticle, name='getArticle'),
+    path('confirm-person', views.getConfirmPerson, name='getConfirmPerson'),
     # path('main/', include(main_patterns)),
 ]
