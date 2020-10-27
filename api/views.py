@@ -51,21 +51,32 @@ def maskHistory(request):
         return Response(serializer.data[0])
     elif request.method == 'PUT':
         date = request.data['params']['date']
-        try: # 있는 경우
+        withMask = request.data['params']['withMask']
+
+        try:
             maskHistory = MaskHistory.objects.get(date=date)
-            serializer = MaskHistorySerializer(maskHistory, data=request.data['params'])
+            
+            data={'date':date, 'outing':maskHistory.outing+1, 'wearing':maskHistory.wearing}
+            if(withMask):
+                data['wearing'] += 1
+
+            serializer = MaskHistorySerializer(maskHistory, data=data)
 
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except MaskHistory.DoesNotExist: # 없는 경우
-            serializer = MaskHistorySerializer(data=request.data['params'])
+        except MaskHistory.DoesNotExist:
+            data={'date':date, 'outing':1, 'wearing':0}
+            if(withMask):
+                data['wearing'] += 1
+
+            serializer = MaskHistorySerializer(data=data)
 
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-                
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
