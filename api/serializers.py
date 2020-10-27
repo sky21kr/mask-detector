@@ -21,12 +21,13 @@ class ArticleSerializer(serializers.ModelSerializer):
 class MaskHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MaskHistory
-        fields = ('outing', 'wearing')
+        fields = ('date', 'outing', 'wearing')
 
     def create(self, validated_data):
         return MaskHistory.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        instance.date = validated_data.get('date', instance.date)
         instance.outing = validated_data.get('outing', instance.outing)
         instance.wearing = validated_data.get('wearing', instance.wearing)
         instance.save()

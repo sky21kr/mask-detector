@@ -13,6 +13,7 @@ class ArticleAdmin(admin.ModelAdmin):
 @admin.register(models.MaskHistory)
 class ArticleAdmin(admin.ModelAdmin):
     list_display = (
+        'date',
         'outing',
         'wearing',
     )

@@ -7,5 +7,6 @@ class Article(models.Model):
     source = models.CharField(max_length=50)
 
 class MaskHistory(models.Model):
+    date = models.CharField(max_length=20, primary_key=True)
     outing = models.IntegerField()
     wearing = models.IntegerField()

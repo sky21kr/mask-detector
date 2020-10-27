@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 def article(request):
     if request.method == 'GET':
         date = request.GET.get('date')
-        article = Article.objects.filter(date=date).all()
+        article = Article.objects.filter(date=date)
         serializer = ArticleSerializer(article, many=True)
         return Response(serializer.data)
 
@@ -43,7 +43,29 @@ def confirmPerson(request):
 @api_view(['GET', 'PUT'])
 def maskHistory(request):
     if request.method == 'GET':
-        row = MaskHistory.objects.filter(pk=1)
+        date = request.GET.get('date')
+        maskHistory = MaskHistory.objects.filter(date=date)
         
-        serializer = MaskHistorySerializer(row, many=True)
+        serializer = MaskHistorySerializer(maskHistory, many=True)
+        print(serializer)
         return Response(serializer.data[0])
+    elif request.method == 'PUT':
+        date = request.data['params']['date']
+        try: # 있는 경우
+            maskHistory = MaskHistory.objects.get(date=date)
+            serializer = MaskHistorySerializer(maskHistory, data=request.data['params'])
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except MaskHistory.DoesNotExist: # 없는 경우
+            serializer = MaskHistorySerializer(data=request.data['params'])
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
