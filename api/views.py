@@ -16,10 +16,30 @@ from bs4 import BeautifulSoup
 @api_view(['GET'])
 def article(request):
     if request.method == 'GET':
-        date = request.GET.get('date')
-        article = Article.objects.filter(date=date)
-        serializer = ArticleSerializer(article, many=True)
-        return Response(serializer.data)
+        url = 'https://search.naver.com/search.naver?where=news&query=코로나+관련+기사'
+        response = requests.get(url)
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        items = soup.select("ul.type01 li")
+
+        articles = []
+
+        for item in items:
+            imgUrl = item.find("img").get("src")
+            title = item.select("a._sp_each_title")[0].get("title")
+            time = item.select("dd.txt_inline")[0].text.split()[-4] + " 전"
+            content = item.select("dd")[1].text.split("▶")[0]
+
+            article = {
+                'imgUrl': imgUrl,
+                'title': title,
+                'time': time,
+                'content': content
+            }
+
+            articles.append(article)
+
+        return Response(articles)
 
 # 확진자 수 반환
 @api_view(['GET'])
