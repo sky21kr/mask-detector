@@ -4,62 +4,23 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from api.models import Article
 from api.models import MaskHistory
-from api.serializers import ArticleSerializer
 from api.serializers import MaskHistorySerializer
 
 import requests
 from bs4 import BeautifulSoup
 
-# 해당 날짜 기사 반환
+# 현재 상태 입력, 반환
 @api_view(['GET'])
-def article(request):
+def isWithMask(request):
     if request.method == 'GET':
-        url = 'https://search.naver.com/search.naver?where=news&query=코로나+관련+기사'
-        response = requests.get(url)
-        html = response.text
-        soup = BeautifulSoup(html, 'html.parser')
-        items = soup.select("ul.type01 li")
+        maskHistory = MaskHistory.objects.last()
+        
+        serializer = MaskHistorySerializer(maskHistory, many=True)
+        
+        return Response(serializer.data[0])
 
-        articles = []
-
-        for item in items:
-            imgUrl = item.find("img").get("src")
-            title = item.select("a._sp_each_title")[0].get("title")
-            time = item.select("dd.txt_inline")[0].text.split()[-4] + " 전"
-            content = item.select("dd")[1].text.split("▶")[0]
-
-            article = {
-                'imgUrl': imgUrl,
-                'title': title,
-                'time': time,
-                'content': content
-            }
-
-            articles.append(article)
-
-        return Response(articles)
-
-# 확진자 수 반환
-@api_view(['GET'])
-def confirmPerson(request):
-    if request.method == 'GET':
-        url = 'http://ncov.mohw.go.kr/'
-        response = requests.get(url)
-        html = response.text
-        soup = BeautifulSoup(html, 'html.parser')
-
-        list_items = soup.select("span.data")
-
-        confrimedPerson = int(list_items[0].text) + int(list_items[1].text)
-
-        data = {
-            'confrimedPerson': confrimedPerson
-        }
-
-        return Response(data)
-
+# 마스크 기록 입력, 반환
 @api_view(['GET', 'PUT'])
 def maskHistory(request):
     if request.method == 'GET':
@@ -67,7 +28,7 @@ def maskHistory(request):
         maskHistory = MaskHistory.objects.filter(date=date)
         
         serializer = MaskHistorySerializer(maskHistory, many=True)
-        print(serializer)
+        
         return Response(serializer.data[0])
     elif request.method == 'PUT':
         date = request.data['params']['date']
@@ -76,9 +37,10 @@ def maskHistory(request):
         try:
             maskHistory = MaskHistory.objects.get(date=date)
             
-            data={'date':date, 'outing':maskHistory.outing+1, 'wearing':maskHistory.wearing}
+            data={'date':date, 'outing':maskHistory.outing+1, 'wearing':maskHistory.wearing, 'withMask': False}
             if(withMask):
                 data['wearing'] += 1
+                data['withMask'] = True
 
             serializer = MaskHistorySerializer(maskHistory, data=data)
 
@@ -88,9 +50,10 @@ def maskHistory(request):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except MaskHistory.DoesNotExist:
-            data={'date':date, 'outing':1, 'wearing':0}
+            data={'date':date, 'outing':1, 'wearing':0, 'withMask': False}
             if(withMask):
                 data['wearing'] += 1
+                data['withMask'] = True
 
             serializer = MaskHistorySerializer(data=data)
 
